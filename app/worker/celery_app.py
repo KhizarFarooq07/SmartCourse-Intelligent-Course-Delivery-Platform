@@ -7,7 +7,6 @@ celery_app = Celery(
     broker=settings.RABBITMQ_URL,
     backend=settings.REDIS_URL,  # stores task results in Redis
     include=[
-        "app.worker.tasks.email_tasks",
         "app.worker.tasks.analytics_tasks",
     ],
 )
@@ -18,6 +17,9 @@ celery_app.conf.update(
     accept_content=["json"],
     timezone="UTC",
     enable_utc=True,
-    # tasks expire from result backend after 1 hour
     result_expires=3600,
+    task_routes={
+        "analytics.*": {"queue": "monolith"},
+        "email.*": {"queue": "notification"},
+    },
 )
